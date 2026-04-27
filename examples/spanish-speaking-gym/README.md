@@ -13,6 +13,10 @@ A free-first, local-first speaking practice app prototype.
 - Browser-native Spanish text-to-speech (if supported)
 - Optional speech recognition toggle (if supported)
 - Optional (future) OpenAI Realtime adapter toggle in settings (not required for MVP)
+- Gamified XP + streak tracker
+- Daily quick challenge prompt
+- Phrase search + category filters
+- Interactive roleplay checklists with saved progress
 
 ## Run
 
