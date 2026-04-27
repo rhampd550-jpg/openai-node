@@ -1,0 +1,94 @@
+:root {
+  color-scheme: light;
+  --bg: #f7f8fa;
+  --card: #ffffff;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --primary: #2563eb;
+  --success: #166534;
+  --danger: #b91c1c;
+  --border: #e5e7eb;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app-header {
+  padding: 1rem;
+  background: #111827;
+  color: white;
+}
+.app-header h1 { margin: 0; font-size: 1.4rem; }
+.app-header p { margin: .25rem 0 0; color: #d1d5db; }
+
+.nav {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: .5rem;
+  padding: .75rem;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+}
+.nav button {
+  border: 1px solid var(--border);
+  background: white;
+  border-radius: .6rem;
+  padding: .65rem .5rem;
+  font-weight: 600;
+}
+.nav button.active {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.app { padding: .9rem; display: grid; gap: .8rem; }
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: .75rem;
+  padding: .85rem;
+}
+.card h2, .card h3 { margin-top: 0; }
+.row { display: flex; gap: .5rem; flex-wrap: wrap; }
+button {
+  cursor: pointer;
+  border-radius: .55rem;
+  border: 1px solid var(--border);
+  background: white;
+  padding: .5rem .7rem;
+}
+button.primary { background: var(--primary); color: white; border-color: var(--primary); }
+button.success { background: #dcfce7; border-color: #86efac; color: var(--success); }
+button.danger { background: #fee2e2; border-color: #fca5a5; color: var(--danger); }
+
+input, select, textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: .55rem;
+  padding: .55rem;
+  margin-top: .3rem;
+}
+label { display: block; margin-bottom: .6rem; font-size: .95rem; }
+.small { color: var(--muted); font-size: .85rem; }
+ul { margin: .3rem 0 .2rem 1rem; padding: 0; }
+.badge {
+  display: inline-block;
+  font-size: .78rem;
+  padding: .12rem .5rem;
+  border-radius: 999px;
+  background: #f3f4f6;
+  margin-right: .3rem;
+}
+
+@media (min-width: 760px) {
+  .nav { grid-template-columns: repeat(7, 1fr); }
+  .app { max-width: 960px; margin: 0 auto; }
+}
