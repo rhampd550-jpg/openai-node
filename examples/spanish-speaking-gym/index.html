@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spanish Speaking Gym</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>Spanish Speaking Gym</h1>
+      <p>Speak first. Practice daily. Keep it simple.</p>
+    </header>
+
+    <nav class="nav" aria-label="Main navigation">
+      <button data-route="/" class="active">Today</button>
+      <button data-route="/phrases">Phrases</button>
+      <button data-route="/drills">Drills</button>
+      <button data-route="/roleplays">Roleplays</button>
+      <button data-route="/weak-phrases">Weak Phrases</button>
+      <button data-route="/progress">Progress</button>
+      <button data-route="/settings">Settings</button>
+    </nav>
+
+    <main id="app" class="app" aria-live="polite"></main>
+
+    <template id="card-template">
+      <article class="card"></article>
+    </template>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>
