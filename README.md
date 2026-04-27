@@ -8,6 +8,17 @@ It is generated from our [OpenAPI specification](https://github.com/openai/opena
 
 To learn how to use the OpenAI API, check out our [API Reference](https://platform.openai.com/docs/api-reference) and [Documentation](https://platform.openai.com/docs).
 
+## Local-first MVP app (Spanish Speaking Gym)
+
+A standalone Next.js App Router project lives at `apps/spanish-speaking-gym/` so it is not coupled to the SDK package root.
+
+MVP defaults are **local-first** and **free-first**:
+
+- No required paid API integrations for core flows.
+- No required authentication for local usage.
+- No required cloud database (local storage-first design).
+- Voice features are optional and can stay fully local/off by default.
+
 ## Installation
 
 ```sh
