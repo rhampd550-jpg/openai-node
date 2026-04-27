@@ -65,20 +65,65 @@ const starterRoleplays = [
 
 const dayTypes = ['Lesson-heavy day', 'Conversation-heavy day', 'Listening-calibration day'];
 
+function ensureStateShape(rawState) {
+  const hydrated = rawState || {};
+  hydrated.phrases ||= starterPhrases;
+  hydrated.roleplays ||= starterRoleplays;
+  hydrated.weakPhrases ||= [];
+  hydrated.weeklyBenchmarks ||= [];
+  hydrated.sessionLog ||= {};
+  hydrated.roleplayProgress ||= {};
+  hydrated.dailyChallenges ||= {};
+  hydrated.settings ||= { voiceEnabled: true, speechRecognitionEnabled: false, enableOptionalRealtime: false };
+  hydrated.stats ||= { xp: 0, streak: 0, lastActiveDate: null };
+  return hydrated;
+}
+
+function daysBetween(a, b) {
+  const start = new Date(`${a}T00:00:00Z`).getTime();
+  const end = new Date(`${b}T00:00:00Z`).getTime();
+  return Math.round((end - start) / 86400000);
+}
+
+function markDailyActivity() {
+  const today = todayISO();
+  if (state.stats.lastActiveDate === today) return;
+  if (!state.stats.lastActiveDate) state.stats.streak = 1;
+  else {
+    const gap = daysBetween(state.stats.lastActiveDate, today);
+    if (gap === 1) state.stats.streak += 1;
+    else if (gap > 1) state.stats.streak = 1;
+  }
+  state.stats.lastActiveDate = today;
+}
+
+function awardXP(points) {
+  state.stats.xp += points;
+  markDailyActivity();
+  save();
+}
+
+function renderStatsBar() {
+  const xpForNext = 50;
+  const progress = state.stats.xp % xpForNext;
+  const level = Math.floor(state.stats.xp / xpForNext) + 1;
+  app.append(
+    card(`
+      <h2>Practice Stats</h2>
+      <p><span class="badge">Level ${level}</span><span class="badge">🔥 ${state.stats.streak}-day streak</span></p>
+      <p class="small">${state.stats.xp} XP total · ${xpForNext - progress} XP to next level</p>
+      <div class="progress"><span style="width: ${(progress / xpForNext) * 100}%"></span></div>
+    `),
+  );
+}
+
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) throw new Error('missing');
-    return JSON.parse(raw);
+    return ensureStateShape(JSON.parse(raw));
   } catch {
-    return {
-      phrases: starterPhrases,
-      roleplays: starterRoleplays,
-      weakPhrases: [],
-      weeklyBenchmarks: [],
-      sessionLog: {},
-      settings: { voiceEnabled: true, speechRecognitionEnabled: false, enableOptionalRealtime: false },
-    };
+    return ensureStateShape();
   }
 }
 
@@ -154,18 +199,56 @@ function renderHome() {
       const done = state.sessionLog[dateKey].completedBlocks;
       if (el.checked && !done.includes(block)) done.push(block);
       if (!el.checked) state.sessionLog[dateKey].completedBlocks = done.filter((x) => x !== block);
-      save();
+      awardXP(2);
     });
   });
 
-  app.append(session);
+
+  const completedChallenge = Boolean(state.dailyChallenges[dateKey]);
+  const promptPhrase = state.phrases[Math.floor(Math.random() * state.phrases.length)];
+  const challenge = card(`
+    <h3>Daily Quick Challenge</h3>
+    <p><strong>Say this idea in Spanish:</strong> ${promptPhrase.english}</p>
+    <details><summary>Show answer</summary><p>${promptPhrase.spanish}</p></details>
+    <button class="primary" ${completedChallenge ? 'disabled' : ''} data-action="complete-challenge">
+      ${completedChallenge ? 'Completed today ✅' : 'Mark challenge complete (+8 XP)'}
+    </button>
+  `);
+
+  challenge.querySelector('[data-action="complete-challenge"]').addEventListener('click', () => {
+    state.dailyChallenges[dateKey] = true;
+    awardXP(8);
+    render();
+  });
+
+  app.append(session, challenge);
 }
 
 function renderPhrases() {
-  const section = card('<h2>Phrase Chunk Bank</h2><p class="small">Tap 🔊 to hear Spanish. Mark recall after speaking.</p>');
+  const section = card(`
+    <h2>Phrase Chunk Bank</h2>
+    <p class="small">Tap 🔊 to hear Spanish. Mark recall after speaking.</p>
+    <div class="row">
+      <input id="phrase-search" placeholder="Search Spanish or English" />
+      <select id="phrase-category-filter">
+        <option value="all">All categories</option>
+        ${[...new Set(state.phrases.map((p) => p.category))].map((c) => `<option value="${c}">${c}</option>`).join('')}
+      </select>
+    </div>
+  `);
   const list = document.createElement('div');
 
-  state.phrases.forEach((p) => {
+  const renderPhraseList = () => {
+    list.innerHTML = '';
+    const query = section.querySelector('#phrase-search').value.trim().toLowerCase();
+    const category = section.querySelector('#phrase-category-filter').value;
+    const filtered = state.phrases.filter((p) => {
+      const matchesQuery = !query || p.spanish.toLowerCase().includes(query) || p.english.toLowerCase().includes(query);
+      const matchesCategory = category === 'all' || p.category === category;
+      return matchesQuery && matchesCategory;
+    });
+
+    filtered.forEach((p) => {
     const item = card(`
       <h3>${p.spanish}</h3>
       <p>${p.english}</p>
@@ -183,20 +266,24 @@ function renderPhrases() {
       p.successfulRecalls += 1;
       p.reviewStatus = 'improving';
       p.lastPracticedDate = todayISO();
-      save();
+      awardXP(3);
       render();
     });
     item.querySelector('[data-action="hard"]').addEventListener('click', () => {
       p.failedRecalls += 1;
       p.reviewStatus = 'weak';
       p.lastPracticedDate = todayISO();
-      save();
+      awardXP(1);
       render();
     });
 
-    list.append(item);
-  });
+      list.append(item);
+    });
+  };
 
+  section.querySelector('#phrase-search').addEventListener('input', renderPhraseList);
+  section.querySelector('#phrase-category-filter').addEventListener('change', renderPhraseList);
+  renderPhraseList();
   app.append(section, list);
 }
 
@@ -235,6 +322,7 @@ function renderDrills() {
     panel.querySelector('[data-action="speak"]').addEventListener('click', () => speak(phrase));
     panel.querySelector('[data-action="easy"]').addEventListener('click', () => {
       panel.querySelector('[data-msg=""]').textContent = 'Great. Repeat once faster.';
+      awardXP(2);
     });
     panel.querySelector('[data-action="hard"]').addEventListener('click', () => {
       state.weakPhrases.push({
@@ -245,7 +333,7 @@ function renderDrills() {
         practiceCount: 0,
         masteryStatus: 'new',
       });
-      save();
+      awardXP(1);
       panel.querySelector('[data-msg=""]').textContent = 'Saved to weak phrases.';
     });
     panel.querySelector('[data-action="add-weak"]').addEventListener('click', () => {
@@ -257,7 +345,7 @@ function renderDrills() {
         practiceCount: 0,
         masteryStatus: 'new',
       });
-      save();
+      awardXP(1);
       panel.querySelector('[data-msg=""]').textContent = 'Saved to weak phrases.';
     });
 
@@ -269,15 +357,34 @@ function renderRoleplays() {
   app.append(card('<h2>Roleplay Cards</h2><p class="small">Use checklist. Speak out loud before checking each step.</p>'));
 
   state.roleplays.forEach((r) => {
-    app.append(
-      card(`
-        <h3>${r.title}</h3>
-        <p><strong>Goal:</strong> ${r.goal}</p>
-        <p><strong>Prompt:</strong> ${r.prompt}</p>
-        <p><strong>Useful phrases:</strong> ${r.usefulPhrases.join(' · ')}</p>
-        <ul>${r.checklist.map((item) => `<li>${item}</li>`).join('')}</ul>
-      `),
-    );
+    state.roleplayProgress[r.id] ||= [];
+    const done = state.roleplayProgress[r.id];
+    const panel = card(`
+      <h3>${r.title}</h3>
+      <p><strong>Goal:</strong> ${r.goal}</p>
+      <p><strong>Prompt:</strong> ${r.prompt}</p>
+      <p><strong>Useful phrases:</strong> ${r.usefulPhrases.join(' · ')}</p>
+      <ul>
+        ${r.checklist
+          .map(
+            (item, idx) => `<li><label><input type="checkbox" data-step="${idx}" ${done.includes(idx) ? 'checked' : ''}/> ${item}</label></li>`,
+          )
+          .join('')}
+      </ul>
+      <p class="small">${done.length}/${r.checklist.length} completed</p>
+    `);
+
+    panel.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+      input.addEventListener('change', () => {
+        const idx = Number(input.dataset.step);
+        if (input.checked && !done.includes(idx)) done.push(idx);
+        if (!input.checked) state.roleplayProgress[r.id] = done.filter((x) => x !== idx);
+        awardXP(input.checked ? 4 : 0);
+        render();
+      });
+    });
+
+    app.append(panel);
   });
 }
 
@@ -314,7 +421,7 @@ function renderWeakPhrases() {
       practiceCount: 0,
       masteryStatus: 'new',
     });
-    save();
+    awardXP(2);
     render();
   });
 
@@ -335,12 +442,12 @@ function renderWeakPhrases() {
 
     item.querySelector('[data-action="practice"]').addEventListener('click', () => {
       w.practiceCount += 1;
-      save();
+      awardXP(1);
       render();
     });
     item.querySelector('[data-action="mastered"]').addEventListener('click', () => {
       w.masteryStatus = 'mastered';
-      save();
+      awardXP(5);
       render();
     });
     item.querySelector('[data-action="remove"]').addEventListener('click', () => {
@@ -391,7 +498,7 @@ function renderProgress() {
       remembered: data.get('remembered'),
       forgotten: data.get('forgotten'),
     });
-    save();
+    awardXP(6);
     render();
   });
   app.append(benchmark);
@@ -451,6 +558,7 @@ function renderSettings() {
 
 function render() {
   app.innerHTML = '';
+  renderStatsBar();
   if (route === '/') renderHome();
   else if (route === '/phrases') renderPhrases();
   else if (route === '/drills') renderDrills();
