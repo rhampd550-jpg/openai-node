@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Skill"
+  short_description: "Create and maintain OpenAI agent skills."
+  default_prompt: "Use $agent-skill to create or update a skill folder with SKILL.md and agents/openai.yaml."
