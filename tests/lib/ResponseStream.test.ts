@@ -1,4 +1,5 @@
 import { makeStreamSnapshotRequest } from '../utils/mock-snapshots';
+import { ResponseStream } from '../../src/lib/responses/ResponseStream';
 
 jest.setTimeout(1000 * 30);
 
@@ -56,5 +57,12 @@ describe('.stream()', () => {
       expect(final.output[1].content[0]).toMatchObject({ type: 'output_text', text: 'The answer is 42' });
     }
     expect(final.output_text).toBe('The answer is 42');
+  });
+
+  it('throws a Response-specific error when no final response is available', async () => {
+    const stream = new ResponseStream(null);
+    (stream as any)._emit('end');
+
+    await expect(stream.finalResponse()).rejects.toThrow('stream ended without producing a Response');
   });
 });
