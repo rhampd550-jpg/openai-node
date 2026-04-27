@@ -152,7 +152,9 @@ function renderHome() {
       ${blocks
         .map(
           ([id, label]) => `<li>
-            <label><input type="checkbox" data-block="${id}" ${state.sessionLog[dateKey].completedBlocks.includes(id) ? 'checked' : ''}/> ${label}</label>
+            <label><input type="checkbox" data-block="${id}" ${
+              state.sessionLog[dateKey].completedBlocks.includes(id) ? 'checked' : ''
+            }/> ${label}</label>
           </li>`,
         )
         .join('')}
@@ -174,7 +176,9 @@ function renderHome() {
 }
 
 function renderPhrases() {
-  const section = card('<h2>Phrase Chunk Bank</h2><p class="small">Tap 🔊 to hear Spanish. Mark recall after speaking.</p>');
+  const section = card(
+    '<h2>Phrase Chunk Bank</h2><p class="small">Tap 🔊 to hear Spanish. Mark recall after speaking.</p>',
+  );
   const list = document.createElement('div');
 
   state.phrases.forEach((p) => {
@@ -278,7 +282,11 @@ function renderDrills() {
 }
 
 function renderRoleplays() {
-  app.append(card('<h2>Roleplay Cards</h2><p class="small">Use checklist. Speak out loud before checking each step.</p>'));
+  app.append(
+    card(
+      '<h2>Roleplay Cards</h2><p class="small">Use checklist. Speak out loud before checking each step.</p>',
+    ),
+  );
 
   state.roleplays.forEach((r) => {
     app.append(
@@ -374,7 +382,13 @@ function renderProgress() {
   ];
 
   const isSunday = new Date().getUTCDay() === 0;
-  app.append(card(`<h2>Progress Milestones</h2><p class="small">${isSunday ? 'Sunday benchmark day ✅' : 'Next benchmark prompt appears on Sunday.'}</p>`));
+  app.append(
+    card(
+      `<h2>Progress Milestones</h2><p class="small">${
+        isSunday ? 'Sunday benchmark day ✅' : 'Next benchmark prompt appears on Sunday.'
+      }</p>`,
+    ),
+  );
 
   milestones.forEach(([day, text]) => app.append(card(`<h3>${day}</h3><p>${text}</p>`)));
 
@@ -426,11 +440,19 @@ function renderSettings() {
   const settings = card(`
     <h2>Voice Settings</h2>
     <p><strong>TTS available:</strong> ${'speechSynthesis' in window ? 'Yes' : 'No'}</p>
-    <p><strong>Speech recognition available:</strong> ${hasSpeechRecognition ? 'Yes' : 'No (manual text fallback active)'}</p>
+    <p><strong>Speech recognition available:</strong> ${
+      hasSpeechRecognition ? 'Yes' : 'No (manual text fallback active)'
+    }</p>
 
-    <label><input id="voice-enabled" type="checkbox" ${state.settings.voiceEnabled ? 'checked' : ''}/> Enable browser text-to-speech</label>
-    <label><input id="stt-enabled" type="checkbox" ${state.settings.speechRecognitionEnabled ? 'checked' : ''} ${!hasSpeechRecognition ? 'disabled' : ''}/> Enable browser speech recognition (optional)</label>
-    <label><input id="realtime-enabled" type="checkbox" ${state.settings.enableOptionalRealtime ? 'checked' : ''}/> Enable optional OpenAI Realtime adapter (future, not required)</label>
+    <label><input id="voice-enabled" type="checkbox" ${
+      state.settings.voiceEnabled ? 'checked' : ''
+    }/> Enable browser text-to-speech</label>
+    <label><input id="stt-enabled" type="checkbox" ${
+      state.settings.speechRecognitionEnabled ? 'checked' : ''
+    } ${!hasSpeechRecognition ? 'disabled' : ''}/> Enable browser speech recognition (optional)</label>
+    <label><input id="realtime-enabled" type="checkbox" ${
+      state.settings.enableOptionalRealtime ? 'checked' : ''
+    }/> Enable optional OpenAI Realtime adapter (future, not required)</label>
 
     <div class="row">
       <button id="test-voice">Test Spanish voice</button>
@@ -451,7 +473,9 @@ function renderSettings() {
     state.settings.enableOptionalRealtime = e.target.checked;
     save();
   });
-  settings.querySelector('#test-voice').addEventListener('click', () => speak('Quiero practicar español todos los días.'));
+  settings
+    .querySelector('#test-voice')
+    .addEventListener('click', () => speak('Quiero practicar español todos los días.'));
   settings.querySelector('#reset').addEventListener('click', () => {
     localStorage.removeItem(STORAGE_KEY);
     state = loadState();
