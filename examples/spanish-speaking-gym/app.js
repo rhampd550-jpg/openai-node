@@ -69,7 +69,19 @@ function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) throw new Error('missing');
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    return {
+      phrases: Array.isArray(parsed?.phrases) ? parsed.phrases : starterPhrases,
+      roleplays: Array.isArray(parsed?.roleplays) ? parsed.roleplays : starterRoleplays,
+      weakPhrases: Array.isArray(parsed?.weakPhrases) ? parsed.weakPhrases : [],
+      weeklyBenchmarks: Array.isArray(parsed?.weeklyBenchmarks) ? parsed.weeklyBenchmarks : [],
+      sessionLog: parsed?.sessionLog && typeof parsed.sessionLog === 'object' ? parsed.sessionLog : {},
+      settings: {
+        voiceEnabled: parsed?.settings?.voiceEnabled ?? true,
+        speechRecognitionEnabled: parsed?.settings?.speechRecognitionEnabled ?? false,
+        enableOptionalRealtime: parsed?.settings?.enableOptionalRealtime ?? false,
+      },
+    };
   } catch {
     return {
       phrases: starterPhrases,
@@ -136,6 +148,7 @@ function renderHome() {
   const now = new Date();
   const dateKey = todayISO(now);
   const dayType = getDayType(now);
+  state.sessionLog ||= {};
   state.sessionLog[dateKey] ||= { completedBlocks: [] };
   const blocks = [
     ['pronunciation', '3 minutes pronunciation drill'],
