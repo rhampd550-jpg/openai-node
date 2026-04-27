@@ -91,12 +91,22 @@ function save() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
-function todayISO() {
-  return new Date().toISOString().slice(0, 10);
+function getLocalDateParts(date = new Date()) {
+  return {
+    year: date.getFullYear(),
+    month: date.getMonth(),
+    day: date.getDate(),
+  };
 }
 
-function getDayType() {
-  const epochDays = Math.floor(new Date(todayISO()).getTime() / 86400000);
+function todayISO(date = new Date()) {
+  const { year, month, day } = getLocalDateParts(date);
+  return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+function getDayType(date = new Date()) {
+  const { year, month, day } = getLocalDateParts(date);
+  const epochDays = Math.floor(Date.UTC(year, month, day) / 86400000);
   return dayTypes[epochDays % 3];
 }
 
@@ -123,7 +133,9 @@ function setRoute(next) {
 navButtons.forEach((b) => b.addEventListener('click', () => setRoute(b.dataset.route)));
 
 function renderHome() {
-  const dateKey = todayISO();
+  const now = new Date();
+  const dateKey = todayISO(now);
+  const dayType = getDayType(now);
   state.sessionLog[dateKey] ||= { completedBlocks: [] };
   const blocks = [
     ['pronunciation', '3 minutes pronunciation drill'],
@@ -135,7 +147,7 @@ function renderHome() {
 
   const session = card(`
     <h2>Today's 30-Minute Session</h2>
-    <p><strong>${dateKey}</strong> · <span class="badge">${getDayType()}</span></p>
+    <p><strong>${dateKey}</strong> · <span class="badge">${dayType}</span></p>
     <ul>
       ${blocks
         .map(
