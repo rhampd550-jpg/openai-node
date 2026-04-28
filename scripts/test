@@ -13,8 +13,19 @@ function steady_is_running() {
   curl --silent "http://127.0.0.1:4010/_x-steady/health" >/dev/null 2>&1
 }
 
+function has_command() {
+  command -v "$1" >/dev/null 2>&1
+}
+
 kill_server_on_port() {
-  pids=$(lsof -t -i tcp:"$1" || echo "")
+  if has_command lsof; then
+    pids=$(lsof -t -i tcp:"$1" || echo "")
+  elif has_command fuser; then
+    pids=$(fuser "$1"/tcp 2>/dev/null || echo "")
+  else
+    pids=""
+  fi
+
   if [ "$pids" != "" ]; then
     kill "$pids"
     echo "Stopped $pids."
