@@ -27,6 +27,18 @@ These commands will make the module importable from the `@openai/openai` scope. 
 import OpenAI from 'jsr:@openai/openai';
 ```
 
+## Environment variables
+
+For local development, copy the sample environment file and fill in the values you need:
+
+```sh
+cp .env.example .env
+```
+
+The SDK reads `OPENAI_API_KEY` from the environment by default. Optional variables such as
+`OPENAI_WEBHOOK_SECRET`, `OPENAI_LOG`, and `OPENAI_BASE_URL` are documented in `.env.example`. Never
+commit real secrets to the repository.
+
 ## Usage
 
 The full API of this library can be found in [api.md file](api.md) along with many [code examples](https://github.com/openai/openai-node/tree/master/examples).
