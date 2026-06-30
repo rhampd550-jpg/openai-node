@@ -774,6 +774,19 @@ We take backwards-compatibility seriously and work hard to ensure you can rely o
 
 We are keen for your feedback; please open an [issue](https://www.github.com/openai/openai-node/issues) with questions, bugs, or suggestions.
 
+
+### Import the local agent skill into Codex
+
+This repository includes a reusable Codex skill for creating and maintaining agent skills.
+To import it into your local Codex installation, run:
+
+```sh
+./scripts/import-agent-skill-to-codex.sh
+```
+
+The script copies `skills/agent-skill` into `${CODEX_HOME:-~/.codex}/skills/agent-skill`.
+Restart Codex after importing so the new skill is available.
+
 ## Requirements
 
 TypeScript >= 4.9 is supported.
